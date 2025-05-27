@@ -24,7 +24,22 @@ Este proyecto se encarga de **crear y gestionar la base de datos** de una empres
 ### **Herramientas**
 - [yEd Live](https://www.yworks.com/yed-live/) para diagramas
 
-## 🛠️ Instalación y Configuración
+## 📂 Estructura del Proyecto
+
+```
+./
+├── diseño/      
+│   ├── modelo_conceptual/    # Imagenes del modelo conceptual de la BBDD
+│   └── modelo_relacional/    # Imagenes del modelo relacional de la BBDD
+│
+├── instalacion/              # Script completo que inicializa la BBDD
+│
+├── scripts/                  # Creacion, inserción, consultas, etc
+│
+├── conversacion_cliente.md   # Conversación con el bot
+```
+
+<!-- ## 🛠️ Instalación y Configuración
 
 ### Instalar MySQL en diferentes OS
 
@@ -50,13 +65,26 @@ Este proyecto se encarga de **crear y gestionar la base de datos** de una empres
 
 ### Requisitos Previos
 - [MySQL](https://www.mysql.com/) en ejecución
+- [MySQL Workbech](https://dev.mysql.com/downloads/workbench/) o similar instalado
 - 
+### Pasos de Instalación
+
+1. Clonar el repositorio:
+   ```sh
+   git clone https://github.com/jCanay/card-customs.git
+   ```
+2. Ejecutar script de instalacion en MySQL Workbench:
+   ```sh
+   cd instalacion/
+   ``` -->
 
 ## 📅 Futuras mejoras
 
 1. Establecer un sistema para gestionar las **compras internas a proovedores** que se realicen en la empresa.
 2. Controlar de manera más detallada el **reparto de productos** desde los almacenes a las tiendas.
 3. Agregar la posibilidad de tener **diferentes productos** (sin necesidad de ser sólo cartas).
+4. Añadir códigos promocionales para descuentos.
+5. Mejorar el manejo y control de pedidos.
 
 > [!NOTE]
 > El nombre del proyecto y de la empresa no es final y podría variar a lo largo del tiempo.
