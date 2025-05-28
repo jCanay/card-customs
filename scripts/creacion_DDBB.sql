@@ -64,16 +64,29 @@ CREATE TABLE IF NOT EXISTS estilos (
     descripcion VARCHAR(255) NOT NULL
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS estado_pedido (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(25) NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS metodos_pago (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(25) NOT NULL
+    tasa DECIMAL(10, 2) 
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS pedidos (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
     fecha_pedido DATETIME NOT NULL,
-    estado ENUM('Pendiente', 'Enviado', 'Entregado', 'Cancelado') NOT NULL,
-    metodo_pago ENUM('Tarjeta', 'Transferencia', 'Paypal') NOT NULL,
+    id_estado INT NOT NULL,
+    id_metodo_pago INT NOT NULL,
     iva_total DECIMAL(10, 2) NOT NULL,
     descuento_total DECIMAL(10, 2) NOT NULL DEFAULT 0,
     total DECIMAL(10, 2) NOT NULL,
-    FOREIGN KEY (id_cliente) REFERENCES clientes(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_estado) REFERENCES estado_pedido(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    FOREIGN KEY (id_metodo_pago) REFERENCES metodos_pago(id) 
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS detalle_pedidos (
