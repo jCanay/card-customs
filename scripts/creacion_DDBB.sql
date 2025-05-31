@@ -4,13 +4,19 @@ CREATE DATABASE IF NOT EXISTS card_customs DEFAULT CHARSET utf8mb4 COLLATE utf8m
 USE card_customs;
 
 -- Creación de tablas
+CREATE TABLE IF NOT EXISTS tipo_local (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(25) NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS local (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    tipo ENUM('Tienda', 'Taller', 'Almacen') NOT NULL,
+    tipo INT NOT NULL,
     direccion VARCHAR(100) NOT NULL,
     localidad VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL,
-    telefono VARCHAR(15) NOT NULL
+    telefono VARCHAR(15) NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tipo_local(id) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS empleados (
@@ -37,7 +43,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 
 CREATE TABLE IF NOT EXISTS etiquetas (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    nombre ENUM('Nuevo', 'Popular', 'Oferta') NOT NULL,
+    nombre VARCHAR(25) NOT NULL,
     descripcion VARCHAR(255) NOT NULL
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
@@ -71,8 +77,8 @@ CREATE TABLE IF NOT EXISTS estado_pedido (
 
 CREATE TABLE IF NOT EXISTS metodos_pago (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(25) NOT NULL
-    tasa DECIMAL(10, 2) 
+    nombre VARCHAR(25) NOT NULL,
+    tasa DECIMAL(10, 2)
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS pedidos (
@@ -81,9 +87,6 @@ CREATE TABLE IF NOT EXISTS pedidos (
     fecha_pedido DATETIME NOT NULL,
     id_estado INT NOT NULL,
     id_metodo_pago INT NOT NULL,
-    iva_total DECIMAL(10, 2) NOT NULL,
-    descuento_total DECIMAL(10, 2) NOT NULL DEFAULT 0,
-    total DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (id_cliente) REFERENCES clientes(id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_estado) REFERENCES estado_pedido(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     FOREIGN KEY (id_metodo_pago) REFERENCES metodos_pago(id) 
@@ -99,7 +102,6 @@ CREATE TABLE IF NOT EXISTS detalle_pedidos (
     precio_unitario DECIMAL(10, 2) NOT NULL,
     iva DECIMAL(5, 2) NOT NULL,
     descuento DECIMAL(5, 2) NOT NULL DEFAULT 0,
-    subtotal DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (id_pedido) REFERENCES pedidos(id),
     FOREIGN KEY (id_producto) REFERENCES productos(id),
     FOREIGN KEY (id_estilo) REFERENCES estilos(id),
@@ -109,8 +111,8 @@ CREATE TABLE IF NOT EXISTS detalle_pedidos (
 CREATE TABLE IF NOT EXISTS historial_pedidos (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     id_pedido INT NOT NULL,
-    fecha_pedido DATETIME NOT NULL,
     fecha_entrega DATETIME,
-    estado_final ENUM('Entregado', 'Cancelado') NOT NULL,
-    FOREIGN KEY (id_pedido) REFERENCES pedidos(id)
+    estado_final INT NOT NULL,
+    FOREIGN KEY (estado_final) REFERENCES estado_pedido(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
