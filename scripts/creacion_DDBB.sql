@@ -1,4 +1,3 @@
--- Creación de la base de datos
 CREATE DATABASE IF NOT EXISTS card_customs DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 USE card_customs;
@@ -78,14 +77,14 @@ CREATE TABLE IF NOT EXISTS estado_pedido (
 CREATE TABLE IF NOT EXISTS metodos_pago (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(25) NOT NULL,
-    tasa DECIMAL(10, 2)
+    tasa DECIMAL(5, 2)
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT NOT NULL,
     fecha_pedido DATETIME NOT NULL,
-    estado_id INT NOT NULL,
+    estado_id INT NOT NULL DEFAULT 1,
     metodo_pago_id INT NOT NULL,
     FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (estado_id) REFERENCES estado_pedido(id) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -111,8 +110,14 @@ CREATE TABLE IF NOT EXISTS detalle_pedidos (
 CREATE TABLE IF NOT EXISTS historial_pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     pedido_id INT NOT NULL,
-    fecha_entrega DATETIME,
-    estado_final INT NOT NULL,
-    FOREIGN KEY (estado_final) REFERENCES estado_pedido(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+    fecha_registro DATETIME,
+    estado_final INT NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS seguimiento_pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    fecha_registro DATETIME,
+    estado_anterior VARCHAR(25),
+    estado_nuevo VARCHAR(25) NOT NULL
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;

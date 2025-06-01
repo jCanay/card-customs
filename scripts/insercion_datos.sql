@@ -1,5 +1,3 @@
--- Script de inserción de datos
-
 USE card_customs;
 
 INSERT INTO tipo_local (nombre) VALUES
@@ -68,7 +66,8 @@ INSERT INTO estilos (nombre, descripcion) VALUES
 
 INSERT INTO estado_pedido (nombre) VALUES
 ('Pendiente'),
-('Enviado'),
+('En preparación'),
+('Enviado'), 
 ('Entregado'),
 ('Cancelado');
 
@@ -78,18 +77,18 @@ INSERT INTO metodos_pago (nombre, tasa) VALUES
 ('Paypal', 2.00),
 ('Bizum', 1.00);
 
-INSERT INTO pedidos (cliente_id, fecha_pedido, estado_id, metodo_pago_id) VALUES
-(1, '2024-05-10 10:30:00', 1, 1),
-(2, '2024-05-11 14:00:00', 2, 2),
-(1, '2024-05-12 11:45:00', 3, 1),
-(3, '2024-05-12 16:20:00', 1, 3),
-(4, '2024-05-13 09:00:00', 4, 1),
-(5, '2024-05-14 10:15:00', 1, 2),
-(6, '2024-05-14 15:30:00', 2, 3),
-(7, '2024-05-15 11:00:00', 3, 1),
-(8, '2024-05-15 17:45:00', 4, 2),
-(9, '2024-05-16 08:30:00', 1, 3),
-(10, '2024-05-16 13:00:00', 4, 1);
+INSERT INTO pedidos (cliente_id, fecha_pedido, metodo_pago_id) VALUES
+(1, '2024-05-10 10:30:00', 1),
+(2, '2024-05-11 14:00:00', 2),
+(1, '2024-05-12 11:45:00', 1),
+(3, '2024-05-12 16:20:00', 3),
+(4, '2024-05-13 09:00:00', 1),
+(5, '2024-05-14 10:15:00', 2),
+(6, '2024-05-14 15:30:00', 3),
+(7, '2024-05-15 11:00:00', 1),
+(8, '2024-05-15 17:45:00', 2),
+(9, '2024-05-16 08:30:00', 3),
+(10, '2024-05-16 13:00:00', 1);
 
 INSERT INTO detalle_pedidos (pedido_id, producto_id, estilo_id, formato_id, cantidad, descuento) VALUES
 (1, 1, 1, 2, 1, 0.00),
@@ -104,15 +103,3 @@ INSERT INTO detalle_pedidos (pedido_id, producto_id, estilo_id, formato_id, cant
 (9, 10, 2, 1, 1, 0.00),
 (10, 11, 1, 1, 10, 0.00),
 (10, 12, 2, 3, 20, 0.00);
-
-INSERT INTO historial_pedidos (pedido_id, fecha_entrega, estado_final) VALUES
-(1, NULL, 1),
-(2, '2024-05-13 10:00:00', 3),
-(3, '2024-05-14 09:30:00', 3),
-(4, NULL, 4),
-(5, NULL, 1),
-(6, '2024-05-16 11:00:00', 3),
-(7, '2024-05-17 12:00:00', 3),
-(8, '2024-05-15 18:00:00', 4),
-(9, NULL, 1),
-(10, NULL, 4);
