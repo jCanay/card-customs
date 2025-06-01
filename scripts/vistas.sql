@@ -1,0 +1,6 @@
+USE card_customs;
+
+CREATE VIEW facturas AS
+SELECT pe.id id_pedido, c.nombre, c.apellidos, m.nombre metodo_pago, m.tasa tarifa, round(sum(((dp.precio_unitario + (dp.precio_unitario * (dp.iva / 100))) * dp.cantidad) - ((dp.descuento / 100) * ((dp.precio_unitario + (dp.precio_unitario * (dp.iva / 100))) * dp.cantidad))), 2) subtotal , round((sum(((dp.precio_unitario + (dp.precio_unitario * (dp.iva / 100))) * dp.cantidad) - ((dp.descuento / 100) * ((dp.precio_unitario + (dp.precio_unitario * (dp.iva / 100))) * dp.cantidad))) + (sum(((dp.precio_unitario + (dp.precio_unitario * (dp.iva / 100))) * dp.cantidad) - ((dp.descuento / 100) * ((dp.precio_unitario + (dp.precio_unitario * (dp.iva / 100))) * dp.cantidad))) * (m.tasa / 100))), 2) total FROM pedidos pe JOIN detalle_pedidos dp ON pe.id = dp.pedido_id JOIN formato f ON f.id = dp.formato_id JOIN metodos_pago m ON m.id = pe.metodo_pago_id JOIN clientes c ON pe.cliente_id = c.id GROUP BY pe.id;
+
+-- IMPORTANTE Crear una funcion para calcular el subtotal
