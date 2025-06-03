@@ -265,6 +265,8 @@ INSERT INTO estado_pedido (nombre) VALUES
 ('Pendiente'),
 ('En preparación'),
 ('Enviado'), 
+('En preparación'),
+('Enviado'), 
 ('Entregado'),
 ('Cancelado');
 

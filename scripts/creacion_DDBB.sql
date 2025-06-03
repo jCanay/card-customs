@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS metodos_pago (
     id INT AUTO_INCREMENT = 1 PRIMARY KEY,
     nombre VARCHAR(25) NOT NULL,
     tasa DECIMAL(5, 2)
+    tasa DECIMAL(5, 2)
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS pedidos (
@@ -121,3 +122,4 @@ CREATE TABLE IF NOT EXISTS seguimiento_pedidos (
     estado_anterior VARCHAR(25),
     estado_nuevo VARCHAR(25) NOT NULL
 ) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
