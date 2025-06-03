@@ -30,16 +30,19 @@ Este proyecto se encarga de **crear y gestionar la base de datos** de una empres
 ./
 ├── diseño/      
 │   ├── modelo_conceptual/    # Imagenes del modelo conceptual de la BBDD
+│   │
 │   └── modelo_relacional/    # Imagenes del modelo relacional de la BBDD
 │
 ├── instalacion/              # Script completo que inicializa la BBDD
 │
-├── scripts/                  # Creacion, inserción, consultas, etc
+├── memoria/                  # Memoria del proyecto
 │
-├── conversacion_cliente.md   # Conversación con el bot
+├── scripts/                  # Creacion, triggers, consultas, etc
+│
+└── conversacion_cliente.md   # Conversación con el bot
 ```
 
-<!-- ## 🛠️ Instalación y Configuración
+## 🛠️ Instalación y Configuración
 
 ### Instalar MySQL en diferentes OS
 
@@ -66,17 +69,15 @@ Este proyecto se encarga de **crear y gestionar la base de datos** de una empres
 ### Requisitos Previos
 - [MySQL](https://www.mysql.com/) en ejecución
 - [MySQL Workbech](https://dev.mysql.com/downloads/workbench/) o similar instalado
-- 
+
 ### Pasos de Instalación
 
 1. Clonar el repositorio:
    ```sh
    git clone https://github.com/jCanay/card-customs.git
    ```
-2. Ejecutar script de instalacion en MySQL Workbench:
-   ```sh
-   cd instalacion/
-   ``` -->
+2. Conectarse a la base de datos desde MySQL Workbench.
+3. Ejecutar script de instalacion en MySQL Workbench localizado en `./instalacion/.
 
 ## 📅 Futuras mejoras
 
@@ -85,6 +86,8 @@ Este proyecto se encarga de **crear y gestionar la base de datos** de una empres
 3. Agregar la posibilidad de tener **diferentes productos** (sin necesidad de ser sólo cartas).
 4. Añadir códigos promocionales para descuentos.
 5. Mejorar el manejo y control de pedidos.
+6. Añadir la posibilidad tener más direcciones de entrega.
+7. Agregar la opción de que cada empleado tenga un rol o puesto dentro de la empresa.
 
 > [!NOTE]
 > El nombre del proyecto y de la empresa no es final y podría variar a lo largo del tiempo.

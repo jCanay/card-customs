@@ -1,3 +1,359 @@
+CREATE DATABASE IF NOT EXISTS card_customs DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+USE card_customs;
+
+CREATE TABLE IF NOT EXISTS tipo_local (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(25) NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS local (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo_id INT NOT NULL,
+    direccion VARCHAR(100) NOT NULL,
+    localidad VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    telefono VARCHAR(15) NOT NULL,
+    FOREIGN KEY (tipo_id) REFERENCES tipo_local(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS empleados (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    local_id INT NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
+    apellidos VARCHAR(50) NOT NULL,
+    dni VARCHAR(9) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    telefono VARCHAR(15) NOT NULL,
+    fecha_contratacion DATE NOT NULL,
+    salario DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (local_id) REFERENCES local(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS clientes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    apellidos VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    direccion VARCHAR(100) NOT NULL,
+    telefono VARCHAR(15)
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS etiquetas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(25) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS formato (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    descripcion VARCHAR(255),
+    precio DECIMAL(10, 2) CHECK (precio >= 0) NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS productos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL,
+    etiqueta_id INT,
+    precio DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL CHECK (stock >= 0),
+    FOREIGN KEY (etiqueta_id) REFERENCES etiquetas(id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS estilos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS estado_pedido (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(25) NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS metodos_pago (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(25) NOT NULL,
+    tasa DECIMAL(5, 2)
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id INT NOT NULL,
+    fecha_pedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estado_id INT NOT NULL DEFAULT 1,
+    metodo_pago_id INT NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (estado_id) REFERENCES estado_pedido(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (metodo_pago_id) REFERENCES metodos_pago(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS detalle_pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    producto_id INT NOT NULL,
+    estilo_id INT,
+    formato_id INT NOT NULL,
+    cantidad INT NOT NULL CHECK (cantidad > 0),
+    precio_unitario DECIMAL(10, 2) NOT NULL CHECK (precio_unitario > 0),
+    iva DECIMAL(5, 2) NOT NULL DEFAULT 21.00 CHECK (iva > 0),
+    descuento DECIMAL(5, 2) NOT NULL DEFAULT 0,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (estilo_id) REFERENCES estilos(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (formato_id) REFERENCES formato(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS historial_pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    fecha_registro DATETIME,
+    estado_final INT NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+CREATE TABLE IF NOT EXISTS seguimiento_pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    fecha_registro DATETIME,
+    estado_anterior VARCHAR(25),
+    estado_nuevo VARCHAR(25) NOT NULL
+) ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci AUTO_INCREMENT = 1;
+
+DELIMITER //
+CREATE FUNCTION calcular_subtotal_factura (precio DECIMAL(10,2), formato_precio DECIMAL(10,2), cantidad INT, iva DECIMAL(5,2), descuento DECIMAL(5,2))
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+	DECLARE precio_formato DECIMAL (10,2) DEFAULT (precio + formato_precio);
+    DECLARE precio_iva DECIMAL(10,2) DEFAULT (precio_formato + (precio_formato * iva / 100));
+    DECLARE precio_iva_descuento DECIMAL(10, 2) DEFAULT (precio_iva - (precio_iva * descuento / 100));
+    DECLARE subtotal DECIMAL(10,2) DEFAULT (precio_iva_descuento * cantidad);
+    
+    RETURN subtotal;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE FUNCTION calcular_total_factura (subtotal DECIMAL(10,2), tasa DECIMAL(5,2))
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    DECLARE total DECIMAL(10,2) DEFAULT (subtotal + (subtotal * tasa / 100));
+
+    RETURN total;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE FUNCTION obtener_stock_producto(producto_id INT)
+RETURNS INT	
+DETERMINISTIC
+BEGIN
+    RETURN (SELECT stock FROM productos WHERE id = producto_id);
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE FUNCTION obtener_nombre_estado(estado_id INT)
+RETURNS VARCHAR(25)
+DETERMINISTIC
+BEGIN
+    RETURN (SELECT nombre FROM estado_pedido WHERE id = estado_id);
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE FUNCTION mayor_salario_empleados()
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    RETURN (SELECT e.salario FROM empleados e ORDER BY salario DESC LIMIT 1);
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER insertar_precio_unitario_detalle_pedidos 
+BEFORE INSERT ON detalle_pedidos 
+FOR EACH ROW
+BEGIN
+    SET NEW.precio_unitario = (SELECT p.precio FROM productos p WHERE id = NEW.producto_id);
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER comprobar_actualizar_stock_detalle_pedido_INSERT
+BEFORE INSERT ON detalle_pedidos
+FOR EACH ROW
+BEGIN
+	DECLARE diferencia INT DEFAULT (obtener_stock_producto(NEW.producto_id) - NEW.cantidad);
+    
+	IF (diferencia < 0) THEN 
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No hay suficiente stock';
+	ELSE 
+		UPDATE productos SET stock = stock - NEW.cantidad WHERE id = NEW.producto_id;
+    END IF;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER comprobar_actualizar_stock_detalle_pedido_UPDATE
+BEFORE UPDATE ON detalle_pedidos
+FOR EACH ROW
+BEGIN
+	IF (NEW.cantidad > OLD.cantidad) THEN 
+		IF (obtener_stock_producto(OLD.producto_id) - (NEW.cantidad - OLD.cantidad) < 0) THEN
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No hay suficiente stock';
+		END IF;
+		UPDATE productos SET stock = stock - (NEW.cantidad - OLD.cantidad) WHERE id = OLD.producto_id;
+	ELSEIF (NEW.cantidad < OLD.cantidad) THEN
+		UPDATE productos SET stock = stock + (OLD.cantidad - NEW.cantidad) WHERE id = OLD.producto_id;
+    END IF;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER registrar_pedidos_historial
+AFTER UPDATE ON pedidos
+FOR EACH ROW
+BEGIN
+	IF (NEW.estado_id IN (4, 5)) THEN
+		INSERT INTO historial_pedidos (pedido_id, fecha_registro, estado_final) VALUES (NEW.id, now(), NEW.estado_id);
+    END IF;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER comprobar_proceso_logistico
+AFTER UPDATE ON pedidos
+FOR EACH ROW
+BEGIN 
+	IF (OLD.estado_id = 1 AND NEW.estado_id = 3) THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El estado no puede pasar directamente de "Pendiente" a "Enviado"';
+	ELSEIF (OLD.estado_id = 1 AND NEW.estado_id = 4) THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El estado no puede pasar directamente de "Pendiente" a "Entregado"';
+	ELSEIF (OLD.estado_id = 2 AND NEW.estado_id = 1) THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede volver del estado "En preparación" al estado "Pendiente"';
+	ELSEIF (OLD.estado_id = 2 AND NEW.estado_id = 4) THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El estado no puede pasar directamente de "En preparación" a "Entregado"';
+	ELSEIF (OLD.estado_id = 3 AND NEW.estado_id = 1) THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede volver del estado "Enviado" al estado "Pendiente"';
+	ELSEIF (OLD.estado_id = 3 AND NEW.estado_id = 2) THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede volver del estado "Enviado" al estado "En preparación"';
+	ELSEIF (OLD.estado_id IN (4, 5) AND NEW.estado_id IN (1, 2, 3, 4, 5)) THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El pedido ha llegado a su estado final y no puede ser modificado';
+    END IF;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER registrar_seguimiento_inicial_pedidos
+AFTER INSERT ON pedidos
+FOR EACH ROW
+BEGIN
+	INSERT INTO seguimiento_pedidos (pedido_id, fecha_registro, estado_anterior, estado_nuevo) VALUES (NEW.id, now(), NULL, obtener_nombre_estado(NEW.estado_id));
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER registrar_seguimiento_pedidos
+AFTER UPDATE ON pedidos
+FOR EACH ROW
+BEGIN
+	INSERT INTO seguimiento_pedidos (pedido_id, fecha_registro, estado_anterior, estado_nuevo) VALUES (OLD.id, now(), obtener_nombre_estado(OLD.estado_id), obtener_nombre_estado(NEW.estado_id));
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE obtener_factura_detallada_pedido(pedido_id INT)
+BEGIN
+	SELECT pe.id, pe.fecha_pedido, c.nombre, c.apellidos, pr.nombre, f.nombre, e.nombre, dp.precio_unitario, dp.cantidad, dp.iva, dp.descuento
+	FROM detalle_pedidos dp JOIN pedidos pe ON pe.id = dp.pedido_id JOIN clientes c ON c.id = pe.cliente_id JOIN formato f ON f.id = dp.formato_id LEFT JOIN estilos e ON dp.estilo_id = e.id JOIN productos pr ON pr.id = dp.producto_id
+	WHERE dp.pedido_id = pedido_id;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE agregar_producto_pedido(pedido_id INT, producto_id INT, estilo_id INT, formato_id INT, cantidad INT, descuento DECIMAL(5,2))
+BEGIN
+	IF ((producto_id, estilo_id, formato_id, descuento) IN (SELECT dp.producto_id, dp.estilo_id, dp.formato_id, dp.descuento FROM detalle_pedidos dp WHERE dp.pedido_id = pedido_id)) THEN
+		UPDATE detalle_pedidos dp SET dp.cantidad = dp.cantidad + cantidad WHERE dp.pedido_id = pedido_id AND dp.producto_id = producto_id AND dp.estilo_id = estilo_id AND dp.formato_id = formato_id;
+	ELSE
+		INSERT INTO detalle_pedidos (pedido_id, producto_id, estilo_id, formato_id, cantidad, descuento) VALUES
+		(pedido_id, producto_id, estilo_id, formato_id, cantidad, descuento);
+    END IF;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE listar_facturas_cliente(cliente_id INT)
+BEGIN
+	SELECT f.*, ep.nombre estado FROM facturas f JOIN pedidos pe ON f.pedido_id = pe.id JOIN clientes c ON c.id = pe.cliente_id JOIN estado_pedido ep ON ep.id = pe.estado_id WHERE c.id = cliente_id;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE actualizar_siguiente_estado_pedido(pedido_id INT)
+BEGIN
+	IF ((SELECT pe.estado_id FROM pedidos pe WHERE pe.id = pedido_id) + 1 < 4) THEN
+		UPDATE pedidos pe SET pe.estado_id = pe.estado_id + 1 WHERE pe.id = pedido_id;
+    END IF;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE entregar_pedido(pedido_id INT)
+BEGIN
+	UPDATE pedidos SET estado_id = 4 WHERE id = pedido_id;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE cancelar_pedido(pedido_id INT)
+BEGIN
+	UPDATE pedidos SET estado_id = 5 WHERE id = pedido_id;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE ver_actualizaciones_estado_pedido(pedido_id INT)
+BEGIN
+	SELECT * FROM seguimiento_pedidos s WHERE s.pedido_id = pedido_id;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE ver_empleados_local(local_id INT)
+BEGIN
+	SELECT e.nombre, e.apellidos, t.nombre tipo, l.direccion, l.localidad, l.email, l.telefono FROM empleados e JOIN local l ON l.id = e.local_id JOIN tipo_local t ON t.id = l.tipo_id WHERE l.id = local_id;
+END;
+// DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE eliminar_cliente_completo(cliente_id INT)
+BEGIN
+	DELETE FROM detalle_pedidos dp WHERE dp.pedido_id IN (SELECT pe.id FROM pedidos pe WHERE pe.cliente_id = cliente_id);
+	DELETE FROM pedidos pe WHERE pe.cliente_id = cliente_id;
+	DELETE FROM clientes WHERE id = cliente_id;
+END;
+// DELIMITER ;
+
+CREATE VIEW facturas AS
+SELECT pe.id pedido_id, pe.fecha_pedido, c.nombre, c.apellidos, m.nombre metodo_pago, m.tasa tarifa, round(sum(calcular_subtotal_factura(dp.precio_unitario, f.precio ,dp.cantidad, dp.iva, dp.descuento)), 2) subtotal, round(sum(calcular_total_factura(calcular_subtotal_factura(dp.precio_unitario, f.precio, dp.cantidad, dp.iva, dp.descuento), m.tasa)), 2) total
+FROM pedidos pe 
+	JOIN detalle_pedidos dp ON pe.id = dp.pedido_id 
+	JOIN formato f ON f.id = dp.formato_id 
+	JOIN metodos_pago m ON m.id = pe.metodo_pago_id 
+	JOIN clientes c ON pe.cliente_id = c.id 
+GROUP BY pe.id;
+
+CREATE VIEW pedidos_finalizados AS
+SELECT h.pedido_id, pe.fecha_pedido, h.fecha_registro, ep.nombre estado_final, concat((datediff(h.fecha_registro, pe.fecha_pedido)), ' días') duracion
+FROM historial_pedidos h 
+	JOIN estado_pedido ep ON ep.id = h.estado_final 
+	JOIN pedidos pe ON pe.id = h.pedido_id;
+
 USE card_customs;
 
 INSERT INTO tipo_local (nombre) VALUES
